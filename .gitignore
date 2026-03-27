@@ -52,4 +52,4 @@ yarn-error.log*
 *.log
 
 # Backend Config (Contains secrets)
-BACKEND/src/config.ts
+
