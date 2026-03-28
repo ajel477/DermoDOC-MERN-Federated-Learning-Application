@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Approved - DermoDoc</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #1d976c, #93f9b9);
+            color: #fff;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .content h2 {
+            color: #1d976c;
+            margin-top: 0;
+        }
+        .content p {
+            font-size: 16px;
+            color: #555;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #1d976c;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+            border-top: 1px solid #eee;
+        }
+        .success-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DermoDoc</h1>
+        </div>
+        <div class="content">
+            <h2>Congratulations, Dr. {{name}}!</h2>
+            <p>We are pleased to inform you that your registration with DermoDoc has been approved by our administrative team.</p>
+            <div class="success-badge">
+                Status: Account Fully Activated
+            </div>
+            <p>You can now log in to your dashboard to complete your profile, set your consultation hours, and start interacting with patients.</p>
+            <p>Our federated learning system is ready to help you analyze dermatological conditions with enhanced privacy and precision.</p>
+            <a href="{{clientUrl}}/login" class="btn">Login to Dashboard</a>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 DermoDoc. All rights reserved.</p>
+            <p>If you have any questions, please contact our support team.</p>
+        </div>
+    </div>
+</body>
+</html>

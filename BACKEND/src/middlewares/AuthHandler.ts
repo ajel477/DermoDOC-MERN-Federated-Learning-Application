@@ -13,7 +13,8 @@ import { Doctor } from "../models/doctor.model";
 const TO_IGNORE_URLS = [
   "/api/auth/login",
   "/api/auth/register",
-
+  "/api/auth/check-email",
+  "/api/auth/check-mobile",
 ];
 
 /**

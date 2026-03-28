@@ -381,6 +381,8 @@ const LandingPage = () => {
             navigate("/doctor-dashboard", { replace: true });
           } else if (role === "PATIENT") {
             navigate("/patient-dashboard", { replace: true });
+          } else if (role === "ADMIN") {
+            navigate("/admin", { replace: true });
           } else {
             navigate("/", { replace: true });
           }
@@ -532,6 +534,19 @@ const LandingPage = () => {
             }}
           >
             <FaUserMd size={14} /> <span>Doctor</span>
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg flex items-center justify-center space-x-1 text-sm transition-all ${
+              userType === "admin"
+                ? "bg-white shadow-sm text-purple-600"
+                : "text-gray-600"
+            }`}
+            onClick={() => {
+              setUserType("admin");
+              setLoginData({ ...loginData, role: "ADMIN" });
+            }}
+          >
+            <FaShieldAlt size={14} /> <span>Admin</span>
           </button>
         </div>
 

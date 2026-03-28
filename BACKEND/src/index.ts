@@ -164,6 +164,7 @@ app.use("/api/payment", require("./controllers/payment.controller").default);
 app.use("/api/feedback", require("./controllers/feedback.controller").default);
 app.use("/api/patient/stats", require("./controllers/patient.stats.routes").default);
 app.use("/api/doctor/stats", require("./controllers/doctor.stats.routes").default);
+app.use("/api/admin", require("./controllers/admin.controller").default);
 
 
 

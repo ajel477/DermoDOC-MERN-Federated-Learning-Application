@@ -1,11 +1,5 @@
 import { param, body, query } from "express-validator";
 import { RoleEnum as ROLES } from "../types";
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-
-dayjs.extend(timezone); // Extend dayjs with timezone plugin
-// set dayjs to IST timezone
-dayjs.tz.setDefault("Asia/Kolkata");
 
 export const idValidater = [
   param("id").isMongoId().withMessage("Id must be a valid mongo id"),

@@ -20,6 +20,7 @@ import {
   getModelByRole,
   getUserByRole,
   uploadLocal,
+  sendMail,
 } from "../constants/lib";
 
 import CONFIG from "../config";
@@ -196,6 +197,13 @@ router.post(
         });
 
         msg = "Doctor registered successfully. Awaiting admin approval.";
+
+        // Send registration email
+        sendMail(email, "Doctor Registration Successful - Pending Approval", "doctor-registration.html", {
+          name,
+          clientUrl: CONFIG.CLIENT_URL,
+        });
+
         break;
 
       default:

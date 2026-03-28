@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
 
-export type Role = "ADMIN" | "PATIENT" | "DOCTOR" ;
+export type Role = "ADMIN" | "PATIENT" | "DOCTOR";
 
 export type TokenInfo = {
   _id: Schema.Types.ObjectId;
@@ -15,7 +15,7 @@ export enum RoleEnum {
   DOCTOR = "DOCTOR"
 }
 
-export enum Status{
+export enum Status {
   PENDING = "PENDING",
   CONFIRMED = "CONFIRMED",
   COMPLETED = "COMPLETED",

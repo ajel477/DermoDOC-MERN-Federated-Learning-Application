@@ -42,10 +42,6 @@ export const uploadLocal = multer({
   }),
 });
 
-export const uploadFile = async (file?: Express.Multer.File) => {
-  if (!file) return "";
-  return `${config.HOST}/static/${FOLDER_PATH.UPLOADS}/${file.filename}`;
-};
 
 export const removeFile = async (file?: Express.Multer.File) => {
   try {
@@ -60,45 +56,13 @@ export const removeFile = async (file?: Express.Multer.File) => {
   }
 };
 
-/**
- *
- * @param url - the url to remove
- * @returns true if the file is removed successfully or else false if not removed
- */
-export const removeFileInURL = async (url?: string) => {
-  try {
-    if (!url) return false;
-
-    const fileName = url.split("/").pop();
-
-    if (!fileName) return false;
-
-    const filePath = path.join(
-      process.cwd(),
-      FOLDER_PATH.PUBLIC,
-      FOLDER_PATH.UPLOADS,
-      fileName
-    );
-
-    const fileStat = await stat(filePath);
-
-    if (fileStat.isFile()) {
-      unlink(filePath);
-    }
-
-    return true;
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
-};
 
 /**
  * @description - nodemailer transporter
  * @returns - nothing
  * instance of nodemailer transporter
  */
-const transpoter = nodemailer.createTransport(config.SMTP_URL, {});
+const transporter = nodemailer.createTransport(config.SMTP_URL, {});
 
 export const sendMail = async (
   to: string,
@@ -129,14 +93,14 @@ export const sendMail = async (
       );
     });
 
-    await transpoter.sendMail({
+    await transporter.sendMail({
       from: config.SMTP_FROM,
       to,
       subject,
       html: template,
     });
   } catch (error) {
-    console.error(error, "failed to ");
+    console.error(error, "failed to send email");
   }
 };
 
