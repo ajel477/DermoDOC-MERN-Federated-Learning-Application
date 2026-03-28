@@ -392,6 +392,7 @@ const LandingPage = () => {
       toast.update(loadingToast, {
         render:
           error.response?.data?.message ||
+          error.response?.data?.msg ||
           "Login failed. Please check your credentials.",
         type: "error",
         isLoading: false,
@@ -402,6 +403,7 @@ const LandingPage = () => {
         type: "error",
         text:
           error.response?.data?.message ||
+          error.response?.data?.msg ||
           "Login failed. Please check your credentials.",
       });
     } finally {
@@ -481,6 +483,7 @@ const LandingPage = () => {
         type: "error",
         text:
           error.response?.data?.message ||
+          error.response?.data?.msg ||
           "Registration failed. Please try again.",
       });
     } finally {

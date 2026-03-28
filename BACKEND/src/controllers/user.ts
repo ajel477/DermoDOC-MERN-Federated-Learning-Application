@@ -35,7 +35,7 @@ type AddUser = IBaseUser & {
   specialization?: string;
   experience?: number;
   hospitalName?: string;
-  consultationFee?:string
+  consultationFee?: string
 };
 
 type ChangePassword = {

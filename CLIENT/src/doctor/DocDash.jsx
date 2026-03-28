@@ -312,7 +312,7 @@ const DoctorDashboard = () => {
           
           {/* Tabs */}
           <div className="px-8 border-b flex space-x-6">
-            {['overview', 'patients', 'earnings'].map((tab) => (
+            {['overview', 'patients', 'earnings', 'feedback'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}

@@ -39,6 +39,13 @@ const MyRequests = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [cancellingRequest, setCancellingRequest] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackData, setFeedbackData] = useState({
+    rating: 5,
+    comment: "",
+    doctorId: "",
+  });
   const requestsPerPage = 5;
 
   // Get patient data from localStorage
@@ -98,6 +105,37 @@ const MyRequests = () => {
     } finally {
       setCancellingRequest(false);
     }
+  };
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    if (!feedbackData.doctorId || !patientId) {
+      toast.error("Invalid data for feedback");
+      return;
+    }
+
+    try {
+      setFeedbackLoading(true);
+      await axiosInstance.post("/feedback/add", {
+        doctorId: feedbackData.doctorId,
+        patientId: patientId,
+        rating: feedbackData.rating,
+        comment: feedbackData.comment,
+      });
+
+      toast.success("Feedback submitted successfully");
+      setShowFeedbackModal(false);
+      setFeedbackData({ rating: 5, comment: "", doctorId: "" });
+    } catch (err) {
+      console.error("Error submitting feedback:", err);
+      toast.error(err.response?.data?.msg || "Failed to submit feedback");
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  const handleOpenFeedback = (doctorId) => {
+    setFeedbackData({ ...feedbackData, doctorId: doctorId });
+    setShowFeedbackModal(true);
   };
 
   const handleViewDetails = (request) => {
@@ -553,13 +591,19 @@ const MyRequests = () => {
                   </button>
                 )}
                 {selectedRequest.requestStatus === "Completed" && (
-                  <>
-                    <button className="flex-1 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50">
+                  <div className="flex flex-col space-y-2 flex-1">
+                    <button className="w-full px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50">
                       <FaPrescriptionBottle className="inline mr-2" />
                       View Prescription
                     </button>
-                  
-                  </>
+                    <button 
+                      onClick={() => handleOpenFeedback(selectedRequest.doctorId._id)}
+                      className="w-full px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center justify-center font-semibold"
+                    >
+                      <FaStar className="mr-2" />
+                      Give Feedback
+                    </button>
+                  </div>
                 )}
                 <button
                   onClick={() => setShowDetailsModal(false)}
@@ -569,6 +613,74 @@ const MyRequests = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Doctor Feedback</h2>
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <FaTimesCircle size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleFeedbackSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFeedbackData({ ...feedbackData, rating: star })}
+                      className={`text-3xl transition-colors ${
+                        star <= feedbackData.rating ? "text-yellow-400" : "text-gray-300 hover:text-gray-400"
+                      }`}
+                    >
+                      <FaStar />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Your Comment</label>
+                <textarea
+                  rows="4"
+                  value={feedbackData.comment}
+                  onChange={(e) => setFeedbackData({ ...feedbackData, comment: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Share your experience with the doctor..."
+                  required
+                ></textarea>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowFeedbackModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition"
+                  disabled={feedbackLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium transition"
+                  disabled={feedbackLoading}
+                >
+                  {feedbackLoading && <FaSpinner className="animate-spin inline mr-2" />}
+                  Submit Feedback
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -677,10 +789,19 @@ const RequestCard = ({
           )} */}
 
           {request.requestStatus === "Completed" && (
-            <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center">
-              <FaPrescriptionBottle className="mr-1 text-green-600" />
-              Prescription
-            </button>
+            <div className="flex flex-col space-y-2">
+              <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center">
+                <FaPrescriptionBottle className="mr-1 text-green-600" />
+                Prescription
+              </button>
+              <button 
+                onClick={() => handleOpenFeedback(request.doctorId._id)}
+                className="px-4 py-2 text-sm bg-yellow-400 text-yellow-900 rounded-lg hover:bg-yellow-500 flex items-center justify-center font-semibold transition"
+              >
+                <FaStar className="mr-1" />
+                Feedback
+              </button>
+            </div>
           )}
         </div>
       </div>
