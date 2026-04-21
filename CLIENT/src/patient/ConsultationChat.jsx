@@ -476,9 +476,16 @@ const ConsultationChat = () => {
                                           : "bg-white text-gray-800 rounded-bl-none shadow-sm"
                                       }`}
                                     >
-                                      <p className="text-sm whitespace-pre-wrap break-words">
-                                        {message.message}
-                                      </p>
+                                      <div className="text-sm whitespace-pre-wrap break-words">
+                                        {message.message && message.message.includes('/uploads/') ? (
+                                          <a href={message.message} target="_blank" rel="noreferrer" className="flex items-center space-x-2 hover:underline">
+                                            {getFileIcon(message.message)}
+                                            <span>View Attached File</span>
+                                          </a>
+                                        ) : (
+                                          <p>{message.message}</p>
+                                        )}
+                                      </div>
                                     </div>
                                     <p
                                       className={`text-xs text-gray-500 mt-1 ${
