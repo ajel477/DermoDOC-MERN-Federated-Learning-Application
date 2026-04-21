@@ -9,7 +9,7 @@ export const paginationChecker = async (
   next: NextFunction
 ) => {
   let { page, limit } = req.query as { page: string; limit: string };
-
+  // req.query is an object containing the parameters that are passed in the URL query string.
   if (!page) page = "1";
   if (!limit) limit = "5";
 

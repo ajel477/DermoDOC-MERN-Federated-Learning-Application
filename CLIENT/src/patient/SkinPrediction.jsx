@@ -271,12 +271,12 @@ const SkinPrediction = () => {
 
       // Create FormData for file upload
       const formData = new FormData();
-      
+
       // Append the image file
       if (imageFile) {
         formData.append("image", imageFile);
       }
-      
+
       // Create prediction details object
       const predictionDetails = {
         patientId: patientId,
@@ -284,7 +284,7 @@ const SkinPrediction = () => {
         confidence: predictionData.confidence,
         timestamp: new Date().toISOString(),
       };
-      
+
       // Append prediction details as JSON string
       formData.append("predictionDetails", JSON.stringify(predictionDetails));
 
@@ -595,44 +595,40 @@ Please consult a dermatologist for proper medical advice.
           <div className="px-8 border-b flex space-x-6">
             <button
               onClick={() => setActiveTab("upload")}
-              className={`py-3 px-1 font-medium text-sm border-b-2 transition ${
-                activeTab === "upload"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              className={`py-3 px-1 font-medium text-sm border-b-2 transition ${activeTab === "upload"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
             >
               <FaCloudUploadAlt className="inline mr-2" />
               Upload Image
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              className={`py-3 px-1 font-medium text-sm border-b-2 transition ${
-                activeTab === "history"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              className={`py-3 px-1 font-medium text-sm border-b-2 transition ${activeTab === "history"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
             >
               <FaHistory className="inline mr-2" />
               History ({predictionHistory.length})
             </button>
             <button
               onClick={() => setActiveTab("trends")}
-              className={`py-3 px-1 font-medium text-sm border-b-2 transition ${
-                activeTab === "trends"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              className={`py-3 px-1 font-medium text-sm border-b-2 transition ${activeTab === "trends"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
             >
               <FaChartLine className="inline mr-2" />
               Trends
             </button>
             <button
               onClick={() => setActiveTab("info")}
-              className={`py-3 px-1 font-medium text-sm border-b-2 transition ${
-                activeTab === "info"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              className={`py-3 px-1 font-medium text-sm border-b-2 transition ${activeTab === "info"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
             >
               <FaInfoCircle className="inline mr-2" />
               About
@@ -651,13 +647,12 @@ Please consult a dermatologist for proper medical advice.
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`relative border-2 border-dashed rounded-xl p-8 mb-6 text-center transition ${
-                  dragActive
-                    ? "border-blue-500 bg-blue-50"
-                    : imagePreview
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-300 hover:border-blue-400"
-                }`}
+                className={`relative border-2 border-dashed rounded-xl p-8 mb-6 text-center transition ${dragActive
+                  ? "border-blue-500 bg-blue-50"
+                  : imagePreview
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-300 hover:border-blue-400"
+                  }`}
               >
                 <input
                   ref={fileInputRef}
@@ -669,11 +664,26 @@ Please consult a dermatologist for proper medical advice.
 
                 {imagePreview ? (
                   <div className="space-y-4">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="max-h-96 mx-auto rounded-lg shadow-lg"
-                    />
+                    <div className={`flex ${prediction?.gradcam_base64 ? 'flex-row justify-center space-x-8' : 'flex-col justify-center'}`}>
+                      <div className="text-center">
+                        {prediction?.gradcam_base64 && <p className="text-sm font-semibold mb-2 text-gray-600">Original Image</p>}
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="max-h-96 mx-auto rounded-lg shadow-lg"
+                        />
+                      </div>
+                      {prediction?.gradcam_base64 && (
+                        <div className="text-center">
+                          <p className="text-sm font-semibold mb-2 text-blue-600">Explainable AI (Grad-CAM)</p>
+                          <img
+                            src={prediction.gradcam_base64}
+                            alt="Grad-CAM"
+                            className="max-h-96 mx-auto rounded-lg shadow-lg border-2 border-blue-400"
+                          />
+                        </div>
+                      )}
+                    </div>
                     <div className="flex justify-center space-x-3">
                       <button
                         onClick={handleReset}
@@ -850,6 +860,35 @@ Please consult a dermatologist for proper medical advice.
                         </div>
                       </div>
                     </div>
+
+                    {/* AI Reports */}
+                    {prediction && (prediction.patient_report || prediction.doctor_report) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-6">
+                        {prediction.patient_report && (
+                          <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6 shadow-sm">
+                            <div className="flex items-center mb-3">
+                              <FaUserMd className="text-blue-600 mr-3 text-2xl" />
+                              <h3 className="text-lg font-bold text-blue-800">Patient Summary</h3>
+                            </div>
+                            <p className="text-sm text-blue-900 leading-relaxed whitespace-pre-wrap">
+                              {prediction.patient_report}
+                            </p>
+                          </div>
+                        )}
+
+                        {prediction.doctor_report && (
+                          <div className="bg-purple-50 border-l-4 border-purple-500 rounded-lg p-6 shadow-sm">
+                            <div className="flex items-center mb-3">
+                              <FaStethoscope className="text-purple-600 mr-3 text-2xl" />
+                              <h3 className="text-lg font-bold text-purple-800">Clinical Notes (For Doctor)</h3>
+                            </div>
+                            <p className="text-sm text-purple-900 leading-relaxed whitespace-pre-wrap">
+                              {prediction.doctor_report}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Disease Information */}
                     {analysisDetails && (
@@ -1030,7 +1069,7 @@ Please consult a dermatologist for proper medical advice.
                           </div>
                         </div>
                         <div className="text-right">
-                            {(item.confidence * 100).toFixed(2)}%
+                          {(item.confidence * 100).toFixed(2)}%
                           <button
                             onClick={() => handleDeleteHistoryItem(item._id)}
                             className="block mt-2 text-red-600 hover:text-red-800"
@@ -1106,11 +1145,11 @@ Please consult a dermatologist for proper medical advice.
                     <div className="bg-purple-50 rounded-lg p-4 text-center">
                       <p className="text-2xl font-bold text-purple-700">
                         {(
-                            predictionHistory.reduce(
-                              (acc, p) => acc + p.confidence * 100,
-                              0,
-                            ) / predictionHistory.length
-                          ).toFixed(1)}%
+                          predictionHistory.reduce(
+                            (acc, p) => acc + p.confidence * 100,
+                            0,
+                          ) / predictionHistory.length
+                        ).toFixed(1)}%
                       </p>
                       <p className="text-sm text-purple-600">
                         Average Confidence

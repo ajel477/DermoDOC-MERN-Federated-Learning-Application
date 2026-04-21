@@ -22,9 +22,8 @@ import { paginationChecker } from "./middlewares/PaginationChecker";
 import { Admin } from "./models";
 import { hash } from "bcrypt";
 
-const publicFolderPath = path.join(process.cwd(), FOLDER_PATH.PUBLIC);
-const uploadFolderPath = path.join(publicFolderPath, FOLDER_PATH.UPLOADS);
-
+const publicFolderPath = path.join(process.cwd(), FOLDER_PATH.PUBLIC); // process.cwd() -> gets the current working directory (BACKEND) and connects it to the public folder. now the currnet directory will be D:\Major Project demo\DermoDoc\CODE\BACKEND\public. 
+const uploadFolderPath = path.join(publicFolderPath, FOLDER_PATH.UPLOADS); //takes the newly created publicFolderPath and appends the path for an uploads directory at the end. and now this creates a nested path.   ie D:\Major Project demo\DermoDoc\CODE\BACKEND\public\uploads 
 console.log(blueText, "🚀 Application Starting...", blueText);
 // 📁 Public Folder Creation
 if (!fs.existsSync(publicFolderPath)) {
@@ -41,7 +40,20 @@ if (!fs.existsSync(uploadFolderPath)) {
   console.log(blueText, "📁 Uploads Folder Exists", blueText);
 }
 
-const corsConfig = {
+// This makes your application robust—when you clone this project to a new computer, it automatically creates the required folders on startup so file uploads don't crash the server. 
+// Your application uses MongoDB to store data. Databases are incredibly fast and efficient at storing text and structured data (like names, emails, and passwords). However, they are terribly slow and expensive when you try to stuff heavy files into them (like a 5MB high-resolution skin image or a multi-page PDF). The Solution: You save the physical heavy file to the server's hard drive (public/uploads), and you just save a tiny, lightweight text string (the URL link) into the MongoDB database.
+//f a patient uploads a photo of a skin condition, that prediction isn't just a one-time event. The application keeps a "Patient History". If the file wasn't stored on your server, there would be no way to show the doctor the image of the patient's skin next week when the doctor reviews the case. By storing it in the backend and linking it via your /static route, both the patient and the doctor can bring up the exact photo at any time.
+//Q) y local storage to store images ? y not imagekit or cloud service ?
+//A)You are 100% correct. Using a cloud storage service like ImageKit, Cloudinary, or AWS S3 is actually the industry standard and best practice for production web applications, especially for handling heavy images and files. However, no, a cloud service is NOT currently configured in this project.
+// When building a prototype or a major project demo, it is much easier and faster to just use local folder storage (public/uploads) via Multer. You don't have to create third-party accounts, set up API keys, or manage cloud storage buckets.
+//Cost: Local storage on your own computer is free while you are coding.
+//No Network Latency: Uploading to localhost is instant for testing, whereas an upload to ImageKit would depend on your internet speed.
+
+// In a nutshell, 
+//The folder creation code in your index.ts exists to automatically set up the "local storage buckets" (the public and uploads folders) so your application can successfully handle, store, and serve image and document data right on your own computer without crashing.
+//It is the quick, free, and efficient way to handle file uploads while you're building and testing your "Major Project Demo"!
+
+const corsConfig = {  //good practice for development environment
   credentials: true,
   origin: [
     "http://localhost",
@@ -67,7 +79,7 @@ app.use(cookieParser()); //! 📝 Parse Cookie headers
 
 app.use(compression()); //! 📝 Compress HTTP or HTTPS responses
 
-app.use("/static", express.static(publicFolderPath)); //! 📝 Serve Static Files
+app.use("/static", express.static(publicFolderPath)); //! 📝 Serve Static Files,  Serving Files to the Frontend
 
 /**
  * ? 🌐 Global Declaration
@@ -101,7 +113,7 @@ declare global {
       console.log(greenText, "📦  Admin User Created", greenText);
     }
     console.log(greenText, "📦  Database Initialization Completed", greenText);
-    console.log(greenText, `📦  Connected To ${config.DB_URL} `, greenText);
+    console.log(greenText, `📦  Connected To Database `, greenText);
     // 🌐 Server Initialization
     console.log(
       blueText,

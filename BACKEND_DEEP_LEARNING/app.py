@@ -13,7 +13,106 @@ from PIL import Image
 import io
 import numpy as np
 import os
+import base64
+import cv2
+import json
+import google.generativeai as genai
+from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+
+# Load environment variables from BACKEND/.env
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'BACKEND', '.env')
+load_dotenv(env_path)
+
+gemini_key = os.getenv("GEMINI_API_KEY")
+if gemini_key:
+    genai.configure(api_key=gemini_key)
+    gemini_model = genai.GenerativeModel('gemini-2.5-flash')
+else:
+    gemini_model = None
+
+class GradCAM:
+    def __init__(self, model, target_layer):
+        self.model = model
+        self.target_layer = target_layer
+        self.gradients = None
+        self.activations = None
+        
+        def backward_hook(module, grad_input, grad_output):
+            self.gradients = grad_output[0]
+            
+        def forward_hook(module, input, output):
+            self.activations = output
+            
+        self.forward_handle = target_layer.register_forward_hook(forward_hook)
+        self.backward_handle = target_layer.register_full_backward_hook(backward_hook)
+        
+    def generate(self, input_tensor, class_idx):
+        self.model.zero_grad()
+        output = self.model(input_tensor)
+        score = output[:, class_idx]
+        score.backward(retain_graph=True)
+        
+        gradients = self.gradients.detach().cpu().numpy()[0]
+        activations = self.activations.detach().cpu().numpy()[0]
+        
+        weights = np.mean(gradients, axis=(1, 2))
+        cam = np.zeros(activations.shape[1:], dtype=np.float32)
+        for i, w in enumerate(weights):
+            cam += w * activations[i]
+            
+        cam = np.maximum(cam, 0)
+        cam = cam - np.min(cam)
+        cam = cam / (np.max(cam) + 1e-8)
+        
+        cam = cv2.resize(cam, (224, 224))
+        
+        self.forward_handle.remove()
+        self.backward_handle.remove()
+        return cam
+
+def apply_gradcam_overlay(image_pil, cam):
+    img = np.array(image_pil.resize((224, 224)))
+    img = img[:, :, ::-1].copy() # RGB to BGR
+    
+    heatmap = cv2.applyColorMap(np.uint8(255 * cam), cv2.COLORMAP_JET)
+    heatmap = np.float32(heatmap) / 255
+    img_float = np.float32(img) / 255
+    
+    cam_img = heatmap + img_float
+    cam_img = cam_img / np.max(cam_img)
+    cam_img = np.uint8(255 * cam_img)
+    
+    _, buffer = cv2.imencode('.jpg', cam_img)
+    b64_str = base64.b64encode(buffer).decode('utf-8')
+    return "data:image/jpeg;base64," + b64_str
+
+def generate_medical_reports(class_name, confidence):
+    if not gemini_model:
+        return {
+            "doctor_report": f"Gemini API key not found. Disease detected: {class_name}. Confidence: {confidence}%. Recommend standard histological review.",
+            "patient_report": f"Our AI detected {class_name} with {confidence}% confidence. Please consult your dermatologist for a proper diagnosis."
+        }
+    
+    prompt = f"""
+    The skin disease AI has predicted "{class_name}" with {confidence}% confidence based on An Explainable AI Grad-CAM heatmap.
+    Generate a JSON response with exactly two keys: "doctor_report" and "patient_report".
+    - "doctor_report": A concise clinical note outlining diagnostic markers the doctor should look for in the Grad-CAM heatmap and recommended next steps.
+    - "patient_report": A simple, reassuring, non-panicky summary explaining what this disease is and advising them to consult their doctor. 
+    Respond ONLY with valid JSON. No markdown wrappings or additional text.
+    """
+    
+    try:
+        response = gemini_model.generate_content(prompt)
+        text = response.text.replace('```json', '').replace('```', '').strip()
+        result = json.loads(text)
+        return result
+    except Exception as e:
+        print("Gemini API Error:", str(e))
+        return {
+            "doctor_report": "Error generating clinical report.",
+            "patient_report": "Error generating patient summary."
+        }
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -179,14 +278,31 @@ def predict():
         # Get prediction
         class_idx, confidence = predict_image(image_tensor)
         
+        # Generate Grad-CAM dynamically
+        try:
+            image_tensor_cam = image_tensor.clone().detach().requires_grad_(True)
+            grad_cam = GradCAM(model, model.model.layer4[-1])
+            cam = grad_cam.generate(image_tensor_cam, class_idx)
+            gradcam_base64 = apply_gradcam_overlay(image, cam)
+        except Exception as e:
+            print(f"Error generating Grad-CAM: {str(e)}")
+            gradcam_base64 = ""
+            
+        # Get AI generated reports
+        confidence_percentage = float(confidence) * 100
+        reports = generate_medical_reports(SIMPLE_CLASSES[class_idx], confidence_percentage)
+        
         # Prepare response
         response = {
             'class_id': int(class_idx),
             'class_name': SIMPLE_CLASSES[class_idx],
             'full_class_name': CLASSES[class_idx],
             'confidence': float(confidence),
-            'confidence_percentage': float(confidence) * 100,
-            'all_classes': SIMPLE_CLASSES
+            'confidence_percentage': confidence_percentage,
+            'all_classes': SIMPLE_CLASSES,
+            'gradcam_base64': gradcam_base64,
+            'doctor_report': reports.get('doctor_report', ''),
+            'patient_report': reports.get('patient_report', '')
         }
         
         return jsonify(response), 200
